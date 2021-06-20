@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using AutoMapper;
 using WebApi.Common;
 using WebApi.DbOperations;
 
@@ -9,23 +10,21 @@ namespace WebApi.BookOperations.GetBookDetail
     {
 
         private readonly BookStoreDbContext _context;
+        private IMapper _mapper;
         public int BookId{get;set;}
-        public GetBookDetailQuery(BookStoreDbContext context)
+        public GetBookDetailQuery(BookStoreDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
         public BookDetailViewModel Handle()
         {
-            BookDetailViewModel bookDetailViewModel=new BookDetailViewModel();
-           
-            var book= _context.Books.FirstOrDefault(x => x.Id == BookId);
+             var book= _context.Books.FirstOrDefault(x => x.Id == BookId);
+        
             if(book is null){
                 throw new InvalidOperationException("Kitap bulunamadı");
             }
-            bookDetailViewModel.Title=book.Title;
-            bookDetailViewModel.PageCount=book.PageCount;
-            bookDetailViewModel.PublishDate=book.PublishDate.Date.ToString("dd/MM/yyyy");
-            bookDetailViewModel.Genre=((GenreEnum)book.GenreId).ToString();
+            BookDetailViewModel bookDetailViewModel=_mapper.Map<BookDetailViewModel>(book);
             return bookDetailViewModel;
         }
     }
