@@ -9,6 +9,8 @@ using WebApi.BookOperations.GetBookDetail;
 using WebApi.BookOperations.UpdateBook;
 using WebApi.BookOperations.DeleteBook;
 using AutoMapper;
+using FluentValidation.Results;
+using FluentValidation;
 
 namespace WebApi.Controllers
 {
@@ -28,7 +30,7 @@ namespace WebApi.Controllers
         {
 
             //  return _context.Books.OrderBy(x => x.PublishDate).ToList();
-            GetBooksQuery query = new GetBooksQuery(_context,_mapper);
+            GetBooksQuery query = new GetBooksQuery(_context, _mapper);
             return Ok(query.Handle());
         }
         [HttpGet("{id}")]
@@ -36,7 +38,7 @@ namespace WebApi.Controllers
         {
             try
             {
-                GetBookDetailQuery query = new GetBookDetailQuery(_context,_mapper);
+                GetBookDetailQuery query = new GetBookDetailQuery(_context, _mapper);
                 query.BookId = id;
                 query.Handle();
                 return Ok(query.Handle());
@@ -62,9 +64,26 @@ namespace WebApi.Controllers
         {
             try
             {
-                CreateBookCommand createBookCommand = new CreateBookCommand(_context,_mapper);
+                CreateBookCommand createBookCommand = new CreateBookCommand(_context, _mapper);
                 createBookCommand.Model = newBook;
-                createBookCommand.Handle();
+
+                CreateBookCommandValidator validator = new CreateBookCommandValidator();
+                validator.ValidateAndThrow(createBookCommand);
+                
+                // if (!result.IsValid)
+                // {
+                //     foreach (var item in result.Errors)
+                //     {
+                //         System.Console.WriteLine("Özellik " + item.PropertyName + " - Error message: " + item.ErrorMessage);
+                //     }
+                //     return BadRequest(result);
+                // }
+                // else
+                // {
+                //     createBookCommand.Handle();
+                //     return Ok();
+                // }
+
 
                 return Ok();
             }
@@ -103,6 +122,9 @@ namespace WebApi.Controllers
             {
                 DeleteBookCommand deleteBookCommand = new DeleteBookCommand(_context);
                 deleteBookCommand.BookId = id;
+                DeleteBookCommandValidator validator=new DeleteBookCommandValidator();
+                validator.ValidateAndThrow(deleteBookCommand);
+                
                 deleteBookCommand.Handle();
                 return Ok();
             }
